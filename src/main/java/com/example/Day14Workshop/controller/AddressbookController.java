@@ -8,11 +8,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.example.Day14Workshop.model.Contact;
+import com.example.Day14Workshop.service.ContactRedis;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.example.Day14Workshop.Contact;
-import com.example.Day14Workshop.Contacts;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Controller
 public class AddressbookController {
     private static final Logger logger = LoggerFactory.getLogger(AddressbookController.class);
+    
     @Autowired
+    ContactRedis service;
     private ApplicationArguments applicationArguments;
 
     @GetMapping("/")
@@ -33,8 +36,9 @@ public class AddressbookController {
     @GetMapping("/getContact/{contactId}")
     public String getContact(Model model, @PathVariable(value="contactId") String contactId) {
         logger.info("contactId > " + contactId);
-        Contacts ct = new Contacts();
-        ct.getContactById(model, contactId, applicationArguments);     
+        Contact ctc = service.findById(contactId); //ws14
+        logger.info("getId > " + ctc.getId());
+        logger.info("getEmail > " + ctc.getEmail()); 
         return "showContact";
     }
 
@@ -43,8 +47,12 @@ public class AddressbookController {
         logger.info("Name > " + contact.getName());
         logger.info("Email > " + contact.getEmail());
         logger.info("Phone Number > " + contact.getPhoneNumber());
-        Contacts ct = new Contacts();
-        ct.saveContact(contact, model, applicationArguments);
+        Contact persistToRedisCtc = new Contact( //ws14
+            contact.getName(),
+            contact.getEmail(),
+            contact.getPhoneNumber()
+        );
+        service.save(persistToRedisCtc); //added for ws14
         return "showContact";
     }
 }
